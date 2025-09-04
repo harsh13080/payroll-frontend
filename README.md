@@ -1,10 +1,13 @@
 ## 📸 Screenshots
 
-### Login Page
+### 🔐 Login Page
 ![Login](./screeshort/login.png)
 
-### Admin Dashboard
-![Admin Dashboard](./screenshot/admindashboard.png)
+### 📝 Signup Page
+![Signup](./screeshort/signup.png)
 
-### Employee Dashboard
-![Employee Dashboard](./screenshot/employeedashboard.png)
+### 👨‍💼 Admin Dashboard
+![Admin Dashboard](./screeshort/logindashboard.png)
+
+### 👨‍🔧 Employee Dashboard
+![Employee Dashboard](./screeshort/employeedashboard.png)
