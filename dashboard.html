@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      background: #f4f6f9;
+    }
+    .navbar {
+      background: linear-gradient(90deg, #6a11cb, #2575fc);
+    }
+    .card {
+      border-radius: 12px;
+      box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-dark px-3 d-flex justify-content-between">
+    <span class="navbar-brand">Employee Dashboard</span>
+    <div class="d-flex align-items-center text-white">
+      <span id="userName" class="me-3"></span>
+      <button class="btn btn-outline-light btn-sm" onclick="logout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="container mt-4">
+    <div class="row g-4">
+      
+      <!-- Salary Slips -->
+      <div class="col-md-6">
+        <div class="card p-3">
+          <h5>My Salary Slips</h5>
+          <ul id="salaryList" class="list-group mt-2"></ul>
+        </div>
+      </div>
+
+      <!-- Expenses -->
+      <div class="col-md-6">
+        <div class="card p-3">
+          <h5>My Expenses</h5>
+          <ul id="expenseList" class="list-group mt-2"></ul>
+          <form id="expenseForm" class="mt-3">
+            <input type="number" id="amount" class="form-control mb-2" placeholder="Amount" required>
+            <input type="text" id="description" class="form-control mb-2" placeholder="Description">
+            <input type="month" id="month" class="form-control mb-2" required>
+            <button type="submit" class="btn btn-primary w-100">Add Expense</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="col-12">
+        <div class="card p-3">
+          <h5>Payroll & Expenses Overview</h5>
+          <canvas id="chart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    if (!token || !user || user.role !== "employee") {
+      alert("Unauthorized! Please login as Employee.");
+      window.location.href = "index.html";
+    }
+
+    // Navbar me naam set karo
+    document.addEventListener("DOMContentLoaded", () => {
+      if (user && user.name) {
+        document.getElementById("userName").innerText = "Welcome, " + user.name;
+      }
+    });
+
+    // Fetch salary slips
+    async function loadSalaries() {
+      const res = await fetch("https://payroll-backend-yw3u.onrender.com/api/salaries", {
+        headers: { "Authorization": "Bearer " + token }
+      });
+      const data = await res.json();
+      const list = document.getElementById("salaryList");
+      list.innerHTML = "";
+      data.forEach(slip => {
+        list.innerHTML += `
+          <li class="list-group-item d-flex justify-content-between">
+            <span>${slip.month}</span>
+            <span><strong>₹${slip.netPay}</strong></span>
+          </li>`;
+      });
+    }
+
+    // Fetch expenses
+    async function loadExpenses() {
+      const res = await fetch("https://payroll-backend-yw3u.onrender.com/api/expenses", {
+        headers: { "Authorization": "Bearer " + token }
+      });
+      const data = await res.json();
+      const list = document.getElementById("expenseList");
+      list.innerHTML = "";
+      data.forEach(exp => {
+        list.innerHTML += `
+          <li class="list-group-item d-flex justify-content-between">
+            <span>${exp.month} - ${exp.description}</span>
+            <span><strong>₹${exp.amount}</strong></span>
+          </li>`;
+      });
+    }
+
+    // Add expense
+    document.getElementById("expenseForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const amount = document.getElementById("amount").value;
+      const description = document.getElementById("description").value;
+      const month = document.getElementById("month").value;
+      const res = await fetch("https://payroll-backend-yw3u.onrender.com/api/expenses", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token 
+        },
+        body: JSON.stringify({ amount, description, month })
+      });
+      if (res.ok) {
+        alert("Expense added!");
+        loadExpenses();
+        document.getElementById("expenseForm").reset();
+      }
+    });
+
+    // Load chart data
+    async function loadChart() {
+      const res = await fetch("https://payroll-backend-yw3u.onrender.com/api/dashboard/stats", {
+        headers: { "Authorization": "Bearer " + token }
+      });
+      const { payroll, expenses } = await res.json();
+
+      const ctx = document.getElementById("chart").getContext("2d");
+      new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: payroll.map(p => p._id),
+          datasets: [
+            {
+              label: "Payroll",
+              data: payroll.map(p => p.totalPayroll),
+              borderColor: "blue",
+              fill: false
+            },
+            {
+              label: "Expenses",
+              data: expenses.map(e => e.totalExpenses),
+              borderColor: "red",
+              fill: false
+            }
+          ]
+        }
+      });
+    }
+
+   function logout() {
+  const confirmLogout = confirm("Are you sure you want to logout?");
+  if (confirmLogout) {
+    localStorage.clear();
+    window.location.href = "index.html";
+  }
+}
+
+
+    // Init
+    loadSalaries();
+    loadExpenses();
+    loadChart();
+  </script>
+</body>
+</html>
