@@ -1,10 +1,10 @@
 ## 📸 Screenshots
 
 ### Login Page
-![Login](payroll-frontend/screenshot/login.png)
+![Login](./screeshort/login.png)
 
 ### Admin Dashboard
-![Admin Dashboard](./frontend/screenshot/admindashboard.png)
+![Admin Dashboard](./screenshot/admindashboard.png)
 
 ### Employee Dashboard
-![Employee Dashboard](./frontend/screenshot/employeedashboard.png)
+![Employee Dashboard](./screenshot/employeedashboard.png)
